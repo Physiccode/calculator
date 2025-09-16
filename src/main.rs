@@ -1,14 +1,29 @@
+use std::f64::consts::PI;
 use std::io;
+use std::error::Error;
 #[allow(unused_variables)]
 
 fn secdeg_delta(a:f64,b:f64,c:f64)->f64{
     b*b-4.0*a*c
 }
 fn secdeg_posroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
-    (-1.0*b+delta.powf(1.0/2.0))/(2.0*a)
+    //i dont know what dereferencing does well
+    let dedet=*delta;
+    if dedet  >= 0.0 {
+        (-1.0*b+delta.powf(1.0/2.0))/(2.0*a)
+    }
+    else {
+        panic!("Delta value:{} is 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
+    }
 }
 fn secdeg_negroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
-    (-1.0*b-delta.powf(1.0/2.0))/(2.0*a)
+    let dedet=*delta;
+    if dedet  >= 0.0 {
+        (-1.0*b-delta.powf(1.0/2.0))/(2.0*a)
+    }
+    else {
+        panic!("Delta value:{} is 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
+    }
 }
 fn twosys_delta(a_1:&f64,b_1:&f64,a_2:&f64,b_2:&f64)->f64{
     a_1*b_2-a_2-b_1
@@ -35,8 +50,10 @@ fn multiply(x:f64,y:f64){
     println!("{}*{}={}",x.clone(),y.clone(),x*y);
 }
 fn divide(x:f64,y:f64){
-    let p=x/y;
-    println!("{}/{}={}",x.clone(),y.clone(),p);
+    if y != 0.0 {
+        println!("{}/{}={}",x,y,x/y)
+    }
+    panic!("Can't divide by 0\noperation:{}/{}",x,y)
 }
 fn floordivide(x:f64,y:f64){
     let p=x/y;
@@ -46,22 +63,169 @@ fn power(x:f64,r:f64){
     let res=x.powf(1.0/r);
     println!("{}nd/rd/th root of {}={}",r.clone(),x.clone(),res);
 }
-fn areasquare(stside:&f64,ndside:&f64)->f64{
-    return stside*ndside;
+enum Shape {
+    Circle{radius:f64},
+
+    Square{side:f64},
+
+    Rectangle{
+        base:f64,
+        height:f64,
+    },
+
+    RightAngledTriangle{
+        base:f64,
+        height:f64,
+        hypothenuse:f64
+    },
+
+    OtherTypeTriangle{
+        a:f64,
+        b:f64,
+        c:f64
+    }
+}
+
+impl Shape {
+    fn area(&self,sum:&Shape)->Result<f64,String>{
+        match sum{
+            Shape::RightAngledTriangle{base,height,hypothenuse}=>{
+                //check if the triangle is really a right angled triangle with pythagorean theorem
+                let sides=base.powi(2)+height.powi(2);
+                if sides==hypothenuse.powi(2){
+                    return Ok((base*height)/2.0);
+                }
+                else {
+                    return Err("This triangle's shape is abnormal,it's not a right angled triangle or a polygon".to_string());
+                    /*
+                    Example of a right angled triangle:
+                    base:8cm
+                    height:6cm
+                    hypothenuse:10cm
+                     */
+                }
+            }
+
+            Shape::OtherTypeTriangle{a,b,c}=>{
+                let s=(a+b+c)/2.0;
+                let expression=(s-a)+(s-b)+(s-c);
+                let area=expression.powf(1.0/2.0);
+                return Ok(area);
+            }
+
+            Shape::Circle{radius}=>{
+                return  Ok(radius*PI);
+            }
+
+            Shape::Square{side}=>{
+                return Ok(side.powi(2));
+            }
+
+            Shape::Rectangle {
+                base,
+                height,
+            }=>{
+                return Ok(base*height);
+            }
+
+        }
+
+    }
+
+    fn perimeter(&self,sum:&Shape)->f64{
+        match sum{
+            
+            Shape::RightAngledTriangle{base,height,hypothenuse}=>{
+                return base+height+hypothenuse;
+            }
+
+            Shape::OtherTypeTriangle { a, b, c }=>{
+                return a+b+c;
+            }
+
+            Shape::Circle{radius}=>{
+                return 2.0*PI*radius;
+            }
+
+            Shape::Square{side}=>{
+                return 4.0*side;
+            }
+
+            Shape::Rectangle{
+                base,
+                height
+            }=>{
+                return 2.0*(base+height);
+            }
+
+        }
+
+    }
+
 }
 fn square(x:f64)->f64{
     x.powf(1.0/2.0)   
 }
-fn degtorad(deg:f64)->f64{
-    const PIFUNC:f64=3.1415;
-    (deg/180.0)*PIFUNC
+fn plotx(mval:f64,cval:f64,xval:f64)->f64{
+    //y=mx+c
+    let y=(mval*xval)+cval;
+    return y;
 }
-fn radtodeg(rad:f64)->f64{
-    rad*180.0
-} 
-fn process(something:f64)->f64{
-    something
+fn ploty(mval:f64,cval:f64,yval:f64,calculatefraction:bool)->String{
+    //formula to calculate x from y:x=(y-c)/m
+    let yminusc=yval-cval;
+    if calculatefraction {
+        if mval==0.0 {
+            panic!("value of m cannot be 0");
+        }
+        return (yminusc/mval).to_string();
+    }
+    else{
+        let expression=format!("{}/{}",yminusc,mval);
+        return expression;
+    }
 }
+fn radtodeg(sum:String)->f64{
+    //ex:2pi/3
+    //ex3:2/3
+    //ex4:12.5
+    //(rad*180º)/pi
+    if let Some(indexofpi)=sum.find("p") {
+        if let Some(indexofbar)=sum.find("/") {
+            let bef:String=sum[..indexofpi].to_string();
+            let aft:String=sum[indexofbar+1..].to_string();
+            let mut bef:f64=bef.trim().parse::<f64>().expect("parsing of nominator error");
+            let mut aft=aft.trim().parse::<f64>().expect("Couldnt parse denominator error");
+            let input=(bef*PI)/aft;
+            let eq=(input*180.0)/PI;
+            return eq;
+        }
+        //at this point input is something like 2pi
+        let num:String=sum[..indexofpi].to_string();
+        let mut num:f64=num.trim().parse::<f64>().expect("Couldnt parse the number before pi");
+        let tot=num*PI;
+        let eq=(tot*180.0)/PI;
+        return eq;
+    }
+    else if let Some(indexofbar)=sum.find("/") {
+        let bef:String=sum[..indexofbar].to_string();
+        let aft:String=sum[indexofbar+1..].to_string();
+        let mut bef:f64=bef.trim().parse::<f64>().expect("Couldnt parse nominator");
+        let mut aft=aft.trim().parse::<f64>().expect("Couldnt parse denominator");
+        let tot=bef/aft;
+        let eq=(tot*180.0)/PI;
+        return eq;
+    }
+    else {
+        /*if input survived until here,then it's probably something like '2',so ill parse the input  as f64,if its anything else then its probably invalid
+        if its invalid ill return an error
+        */
+        let mut sum:f64=sum.trim().parse::<f64>().expect("Couldnt parse  the result");
+        let eq=(sum*180.0)/PI;
+        return eq;
+    }
+}
+
 fn classify(deltax:f64,deltay:f64,delta:f64,calcx:f64,calcy:f64,a_1:f64,b_1:f64,a_2:f64,b_2:f64,c_1:f64,c_2:f64){
     if delta.floor() !=0.0{   
         println!("
@@ -108,20 +272,18 @@ fn classify(deltax:f64,deltay:f64,delta:f64,calcx:f64,calcy:f64,a_1:f64,b_1:f64,
         }
     }
 }
-fn main(){
-    const PI:f64=3.1415;
-    const EULER:f64=2.78;
+fn main()->Result<(),Box<dyn Error>>{
     let mut brake=String::new();
     println!("Do you wish to break after each answer[yes/no]?:");
     io::stdin().read_line(&mut brake).expect("Couldnt read line");
-    let operation=loop{
+    let _operation=loop{
         let mut exit=String::new();
         println!("
         Select 1 mode:
         1-exit
         2-second degree equation solver
         3-system of equations solver
-        4-Solve with math formulas
+        4-Area
         5-addition
         6-subtraction
         7-multiplication
@@ -130,6 +292,7 @@ fn main(){
         10-power
         11-radians to degrees
         12-degrees to radians
+        13-Functions
             ");
             io::stdin().read_line(&mut exit).expect("Couldnt erad line.Sorry");
             if exit.trim()=="exit"||exit.trim()=="1"{
@@ -230,19 +393,24 @@ fn main(){
       }
       else if exit.trim()=="4"{
         let mut choice=String::new();
-        println!("Select 1 type of formula:
+        println!("Select your figure:
         1-Area of a square
         2-Area of a circle
         3-Area of  rectangle
+        4-Area of right angled triangle
+        5-Area of other type of triangle
+        --perimeters--
+        a-perimeter of square
+        b-perimeter of circle
+        c-perimter of rectangle
+        d-perimeter of right angled triangle
+        e-perimeter of other type of triangle
         ");
         io::stdin().read_line(&mut choice).expect("Couldnt read line sorry");
         if choice.trim()=="1"{
             let mut stside=String::new();
-            let mut ndside=String::new();
-            println!("Whats the measurement of 1st side? :");
+            println!("Whats the measurement of one side? :");
             io::stdin().read_line(&mut stside).expect("Couldnt read line");
-            println!("Whats the measurement of the 2nd side? :");
-            io::stdin().read_line(&mut ndside).expect("Couldnt read line");
             let stside:f64=match stside.trim().parse::<f64>(){
                 Ok(num)=>num,
                 Err(_)=>{
@@ -250,30 +418,19 @@ fn main(){
                     break 0
                 }
             };
-            let ndside:f64=match ndside.trim().parse::<f64>(){
-                Ok(num)=>num,
-                Err(_)=>{
-                    println!("Couldnt parse second side form string to float[Hint:Try typing a correct number]");
-                    break 0
-                }
-            };
-            let res=areasquare(&stside,&ndside);
-            println!("Dimensions of square:{}x{}
-                      Area:{}",stside,ndside,res);
+            let square=Shape::Square{side:stside.clone()};
+            let res=square.area(&square)?;
+            println!("Dimensions of square:({}) x ({})
+                      Area:{}",&stside,stside,res);
             if brake.trim()=="yes"{break 0}
         }
         else if choice.trim()=="2"{
             let mut radius=String::new();
             println!("Whats the radius of the circle? :");
             io::stdin().read_line(&mut radius).expect("Couldnt read line");
-            let radius:f64=match radius.trim().parse::<f64>(){
-                Ok(num)=>num,
-                Err(_)=>{
-                    println!("Couldnt parse radius from string to float,breaking");
-                    break 0
-                }
-            };
-            let res=square(radius.clone())*PI;
+            let radius:f64=radius.trim().parse::<f64>()?;
+            let circle=Shape::Circle{radius:radius};
+            let res=circle.area(&circle)?;
             println!("Circle's radius:{}\nCircle's Area:{}\nCircle's area formula:pi*(radius^2)",radius,res);
             if brake.trim()=="yes"{break 0}
         }
@@ -282,24 +439,39 @@ fn main(){
             let mut length=String::new();
             println!("Whats the width of the rectangle? :");
             io::stdin().read_line(&mut width).expect("Couldnt read line");
-            let width:f64=match width.trim().parse::<f64>(){
-                Ok(num)=>num,
-                Err(_)=>{
-                    println!("Couldnt parse width from string to float,breaking");
-                    break 0
-                }
-            };
+            let width:f64=width.trim().parse::<f64>()?;
             println!("Whats the length of the rectangle? :");
             io::stdin().read_line(&mut length).expect("Couldnt read line");
-            let length:f64=match length.trim().parse::<f64>(){
-                Ok(num)=>num,
-                Err(_)=>{
-                    println!("Couldnt parse length from string to float,breaking");
-                    break 0
-                }
-            };
-            println!("Rectangles length:{}\nRectangle's width:{}\nRectangle's Area:{}",length.clone(),width.clone(),length*width);
+            let length:f64=length.trim().parse::<f64>()?;
+            let rect=Shape::Rectangle { base: width, height: length };
+            let res=rect.area(&rect)?;
+            println!("Rectangles length:{}\nRectangle's width:{}\nRectangle's Area:{}",length.clone(),width.clone(),res);
             if brake.trim()=="yes"{break 0}
+        }
+        else if choice.trim()=="4"{
+            println!("[4-4] Mode:Área of right angled triangle");
+            let mut base=String::new();
+            let mut height=String::new();
+            let mut hypothenuse=String::new();
+            println!("Whats the measurement of the base? :");
+            io::stdin().read_line(&mut base).expect("Couldnt read line");
+            println!("Whats the measurement of the height? :");
+            io::stdin().read_line(&mut height).expect("Couldnt read line");
+            println!("Whats the measurement of the hypothenuse? :");
+            io::stdin().read_line(&mut hypothenuse).expect("Couldnt read line");
+            let base:f64=base.trim().parse::<f64>()?;
+            let height:f64=height.trim().parse::<f64>()?;
+            let hypothenuse:f64=hypothenuse.trim().parse::<f64>()?;
+            //construct triangle
+            let rightangledtriangle=Shape::RightAngledTriangle{ base:base.clone(), height:height.clone(), hypothenuse:hypothenuse.clone(),};
+            let res=rightangledtriangle.area(&rightangledtriangle)?;
+            println!("
+            triangle's type:Right angled
+            triangle's base:{}
+            triangle'height:{}
+            triangle's hypothenuse:{}
+            triangle's area:{}
+            ",base,height,hypothenuse,res);
         }
       }
       else if exit.trim()=="5"{
@@ -324,6 +496,9 @@ fn main(){
             }
         };
         add(x,y);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="6"{
         let mut x=String::new();
@@ -347,6 +522,9 @@ fn main(){
             }
         };
         subtract(x,y);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="7"{
         let mut x=String::new();
@@ -370,6 +548,9 @@ fn main(){
             }
         };
         multiply(x,y);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="8"{
         let mut x=String::new();
@@ -393,6 +574,9 @@ fn main(){
             }
         };
         divide(x,y);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="9"{
         let mut x=String::new();
@@ -416,6 +600,9 @@ fn main(){
             }
         };
         floordivide(x,y);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="10"{
         let mut x=String::new();
@@ -439,42 +626,117 @@ fn main(){
             }
         };
         power(x,r);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="11"{
-        let mut deg=String::new();
-        println!("[Degrees to radians mode]\nHow many degrees do you want to convert to radian?e.g:25 :");
-        io::stdin().read_line(&mut deg).expect("Couldnt read line sorry");
-        let deg:f64=match deg.trim().parse::<f64>(){
-            Ok(num)=>num,
-            Err(_)=>{
-                println!("Couldnt convert degrees variable from string to float\n[Hint:if you want to convert 25º,dont type 25º,instead type 25]");
-                break 0
-            }
-        };
-        let conv=degtorad(deg);
-        println!("{}º(Degrees)->{}Rad",deg.clone(),conv);
+        let mut rad=String::new();
+        println!("[11] Mode:Radians to degrees");
+        println!("How many radians do you wish to convert to degrees? enter them in the form of '2pi/3' :");
+        io::stdin().read_line(&mut rad).expect("Couldnt read line");
+        let res=radtodeg(rad.clone());
+        println!("{} rad -> {} degrees",rad.trim(),res);
+        if brake.trim()=="yes" {
+            break 0
+        }
       }
       else if exit.trim()=="12"{
-        //i had a hard time here,almost gave up untill i realized i could use string slices💀
-        let mut totalstring=String::new();
-        println!("Input your radian value EXACTLY like this '1pi/3':");
-        io::stdin().read_line(&mut totalstring).expect("Couldnt read line sorry");
-        let stprocess=&totalstring.replace("pi","").to_string();
-        if let Some(index)=stprocess.find("/"){
-            let stpart=&stprocess[..index];
-            let ndpart=&stprocess[index+1..];
-            let stpart:f64=stpart.trim().parse().unwrap_or(0.0);
-            let ndpart:f64=ndpart.trim().parse().unwrap_or(1.0);
-            let res=(stpart/ndpart)*180.0;
-            println!("{}radians to {}º",totalstring.trim(),res);
-            if brake.trim()=="yes"{
+        let mut deg=String::new();
+        println!("[12] Mode:Degrees to radians");
+        println!("How many degrees do you wish to convert to radians? enter them in the form of '150' :");
+        //in the future make it so user cna input 150º
+        io::stdin().read_line(&mut deg).expect("Couldnt read line");
+        /*
+        deg now is something like 160,so first we will divide deg and 180 by 2,if both are int,we keep dividing,if error we return
+         */
+        println!("this mode is deprecated");
+      }
+      else if exit.trim()=="13" {
+        println!("[12] Mode:Functions");
+        let _funcloop:u8=loop {
+            let mut funcchoice=String::new();
+            println!("Select your objective:
+            1-go back
+            2-Plotting ranges of x in y=mx+c
+            3-plotting ranges of y in y=mx+c
+            4-finding x and y axis in y=mx+c
+            ");
+            io::stdin().read_line(&mut funcchoice).expect("Couldnt read line");
+            if funcchoice.trim() == "1" {
                 break 0
             }
-        }
-        else{
-            println!("Please formate your answer to something like 1pi/3[Hint:we exclude pi form your answer,so if you input pi/3 we try to parse /3]");
-        }
+            else if funcchoice.trim() == "2"{
+                let mut mval=String::new();
+                let mut cval=String::new();
+                let mut stval=String::new();
+                let mut ndval=String::new();
+                println!("Enter value of m:");
+                io::stdin().read_line(&mut mval).expect("Couldnt read line");
+                println!("Enter value of c:");
+                io::stdin().read_line(&mut cval).expect("Couldnt read line");
+                let mval:f64=mval.trim().parse::<f64>()?;
+                let cval:f64=cval.trim().parse::<f64>()?;
+                println!("Enter the first value of x :");
+                io::stdin().read_line(&mut stval).expect("Couldnt read line");
+                println!("Enter the second value of x :");
+                io::stdin().read_line(&mut ndval).expect("Couldnt read line");
+                let mut stval:f64=stval.trim().parse::<f64>()?;
+                let ndval:f64=ndval.trim().parse::<f64>()?;
+                let mut valsy:Vec<f64>=Vec::new();
+                while stval<ndval {
+                    let i=plotx(mval,cval,stval);
+                    valsy.push(i);
+                    stval +=1.0;
+                }
+                println!("Equation:y=({})x+({}) for x in range=[({}),({})]",mval,cval,stval,ndval);
+                println!("Values of y:{:#?}",valsy);
+                if brake.trim()=="yes"{
+                    //concern:i cant find a way to break from both loops without panicking
+                    panic!("ignore this error,it was made so the program could break from both loops");
+                }
+            }
+            else if funcchoice.trim() =="3" {
+                let mut mval=String::new();
+                let mut cval=String::new();
+                let mut stval=String::new();
+                let mut ndval=String::new();
+                let mut calcfrac=String::new();
+                let mut valsx:Vec<String>=Vec::new();
+                println!("Enter value of m:");
+                io::stdin().read_line(&mut mval).expect("Couldnt read line");
+                println!("Enter value of c:");
+                io::stdin().read_line(&mut cval).expect("Couldnt read line");
+                println!("Enter the first value of y:");
+                io::stdin().read_line(&mut stval).expect("Couldnt read line");
+                println!("Enter the last value of y:");
+                io::stdin().read_line(&mut ndval).expect("Couldnt read line");
+                println!("Do you want to calculate fraction? :");
+                io::stdin().read_line(&mut calcfrac).expect("Couldnt read line");
+                let mval:f64=mval.trim().parse::<f64>()?;
+                let cval:f64=cval.trim().parse::<f64>()?;
+                let mut stval:f64=stval.trim().parse::<f64>()?;
+                let ndval:f64=ndval.trim().parse::<f64>()?;
+                while stval<ndval {
+                if calcfrac.trim() == "yes" || calcfrac.trim() == "calculate" || calcfrac.trim() =="accept" {
+                    let i=ploty(mval,cval,stval,true);
+                    valsx.push(i);
+                    stval +=1.0;
+                }
+                else {
+                    let i=ploty(mval,cval,stval,false);
+                    valsx.push(i);
+                    stval +=1.0;
+                }
+                }
+                println!("Equation:y={}x+{} for y in range=[{},{}]",mval,cval,stval,ndval);
+                println!("Values of y as x varies:{:#?}",valsx);
+                if brake.trim()=="yes"{
+                    break 0
+                }
+            }
 
+        };
       }
       else {
         println!("Invalid choice");
@@ -483,4 +745,5 @@ fn main(){
         }
       }
     };
+    Ok(())
 }
