@@ -90,13 +90,13 @@ impl Shape {
     fn area(&self,sum:&Shape)->Result<f64,String>{
         match sum{
             Shape::RightAngledTriangle{base,height,hypothenuse}=>{
-                //check if the triangle is really a right angled triangle with pythagorean theorem
+                //Ensure pythagoras theoream returns true
                 let sides=base.powi(2)+height.powi(2);
                 if sides==hypothenuse.powi(2){
                     return Ok((base*height)/2.0);
                 }
                 else {
-                    return Err("This triangle's shape is abnormal,it's not a right angled triangle or a polygon".to_string());
+                    return Err("Not a right angled triangle".to_string());
                     /*
                     Example of a right angled triangle:
                     base:8cm
