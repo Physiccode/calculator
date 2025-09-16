@@ -7,7 +7,7 @@ fn secdeg_delta(a:f64,b:f64,c:f64)->f64{
     b*b-4.0*a*c
 }
 fn secdeg_posroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
-    //i dont know what dereferencing does well
+    
     let dedet=*delta;
     if dedet  >= 0.0 {
         (-1.0*b+delta.powf(1.0/2.0))/(2.0*a)
