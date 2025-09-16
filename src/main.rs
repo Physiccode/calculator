@@ -645,11 +645,7 @@ fn main()->Result<(),Box<dyn Error>>{
         let mut deg=String::new();
         println!("[12] Mode:Degrees to radians");
         println!("How many degrees do you wish to convert to radians? enter them in the form of '150' :");
-        //in the future make it so user cna input 150º
         io::stdin().read_line(&mut deg).expect("Couldnt read line");
-        /*
-        deg now is something like 160,so first we will divide deg and 180 by 2,if both are int,we keep dividing,if error we return
-         */
         println!("this mode is deprecated");
       }
       else if exit.trim()=="13" {
@@ -692,7 +688,6 @@ fn main()->Result<(),Box<dyn Error>>{
                 println!("Equation:y=({})x+({}) for x in range=[({}),({})]",mval,cval,stval,ndval);
                 println!("Values of y:{:#?}",valsy);
                 if brake.trim()=="yes"{
-                    //concern:i cant find a way to break from both loops without panicking
                     panic!("ignore this error,it was made so the program could break from both loops");
                 }
             }
