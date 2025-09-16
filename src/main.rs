@@ -13,7 +13,7 @@ fn secdeg_posroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
         (-1.0*b+delta.powf(1.0/2.0))/(2.0*a)
     }
     else {
-        panic!("Delta value:{} is 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
+        panic!("Delta value:{} is less than 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
     }
 }
 fn secdeg_negroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
@@ -22,7 +22,7 @@ fn secdeg_negroot(a:f64,b:f64,c:f64,delta:&f64)->f64{
         (-1.0*b-delta.powf(1.0/2.0))/(2.0*a)
     }
     else {
-        panic!("Delta value:{} is 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
+        panic!("Delta value:{} is less than 0.Equation:{}x^2+{}x+{}=0",delta,a,b,c);
     }
 }
 fn twosys_delta(a_1:&f64,b_1:&f64,a_2:&f64,b_2:&f64)->f64{
