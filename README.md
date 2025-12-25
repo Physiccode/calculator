@@ -11,13 +11,12 @@ cargo run
 ## Pre-requisites
 
 - [Rust compiller installed](https://www.rust-lang.org/tools/install)
-- 
 ##Comming soon:
 
-1 - Quartic equation roots
-2 - Better precision
-3 - drawing functions such as parabolas,linear functions,exponential functions,etc
-4 - polinomial operations
-5 - calculus support
-6 - Number theory support
-7 - GUI support
+- Quartic equation roots
+- Better precision
+- drawing functions such as parabolas,linear functions,exponential functions,etc
+- polinomial operations
+- calculus support
+- Number theory support
+- GUI support
