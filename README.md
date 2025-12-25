@@ -1,6 +1,7 @@
-# Rust calculator
-Simple CLI calculator built in Rust,has up to 16 functions and 480+ lines of code,i might bring updates as  i learn more rust
-## How to Install?
+# About
+A calculator made with the Rust programming language,it supports finding roots of third and second degree equations,complex or real.It also supports many other calculations,feel free to explore it's functionalities.
+
+## How to Install & run?
 ```bash
 git clone https://github.com/Physiccode/calculator.git
 cd calculator
@@ -8,10 +9,15 @@ cargo build
 cargo run
 ```
 ## Pre-requisites
+
 - [Rust compiller installed](https://www.rust-lang.org/tools/install)
-## Future improvements
-- Better error-handling
-- Better equation solving skill
-- Third degree equation resolution
-- 3 variables system of equations resolution
-- Calculus support
+- 
+##Comming soon:
+
+1 - Quartic equation roots
+2 - Better precision
+3 - drawing functions such as parabolas,linear functions,exponential functions,etc
+4 - polinomial operations
+5 - calculus support
+6 - Number theory support
+7 - GUI support
